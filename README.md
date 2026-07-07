@@ -4,134 +4,120 @@
 
 Open-source, self-serve AI ad pipeline with cryptographic provenance. Built for the Backblaze Generative Media Hackathon (Genblaze + B2).
 
-Generate 30–60s ad or UGC-style video variants from a text brief. Every output carries a verifiable, tamper-evident manifest stored on Backblaze B2 with Object Lock.
-
 ---
 
-## What It Does
+## Quick Start (Tonight — Demo Mode)
 
-1. **Submit a brief** — brand name, ad description, optional product photo
-2. **Pipeline runs** — storyboard → animate (multi-provider fan-out) → voiceover → score → compose
-3. **Pick a variant** — grid of finished videos with cost and provider info
-4. **Verify provenance** — SHA-256 manifest check, full step timeline, fallback history
-5. **Fork & replay** — swap a provider (e.g. Kling → Runway) and re-run with lineage tracking
+Works **without Docker, B2, or AI API keys**. Uses SQLite + local storage + simulated pipeline.
 
----
+### Terminal 1 — Backend
 
-## Tech Stack
+```bat
+infra\start-api.bat
+```
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | Next.js (Vercel) |
-| Backend | FastAPI + Redis job queue |
-| Pipeline | Genblaze Python SDK |
-| Database | PostgreSQL (metadata only) |
-| Storage | Backblaze B2 (assets + manifests) |
-| Media | ffmpeg compose step |
+Or manually:
 
----
+```bat
+cd apps\worker
+set DATABASE_URL=sqlite:///./adproof_local.db
+set ADPROOF_DEMO_MODE=true
+.venv\Scripts\python.exe -m uvicorn main:app --port 8000
+```
 
-## Quick Start
+API: http://localhost:8000 · Docs: http://localhost:8000/docs
 
-```bash
-# 1. Clone and configure
-git clone <repo-url> adproof && cd adproof
-cp .env.example .env   # fill in API keys
+### Terminal 2 — Frontend
 
-# 2. Start Postgres + Redis
-cd infra && docker compose up -d && cd ..
+```bat
+infra\start-web.bat
+```
 
-# 3. Setup B2 bucket (one-time)
-python infra/b2-bucket-setup.py
+Or manually:
 
-# 4. Backend
-cd apps/worker
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-alembic upgrade head
-uvicorn main:app --reload --port 8000          # terminal 1
-python -m jobs.worker                          # terminal 2
-
-# 5. Frontend
-cd apps/web
+```bat
+cd apps\web
+set NEXT_PUBLIC_API_URL=http://localhost:8000
 npm install && npm run dev
 ```
 
-Open http://localhost:3000
+App: http://localhost:3000
 
-Full setup guide: [docs/setup.md](docs/setup.md)
+### Demo Flow
 
----
-
-## Documentation
-
-| Document | Description |
-|----------|-------------|
-| [architecture.md](docs/architecture.md) | System overview, data flow, design decisions |
-| [setup.md](docs/setup.md) | Local development setup |
-| [frontend-spec.md](docs/frontend-spec.md) | Pages, components, API client |
-| [backend-spec.md](docs/backend-spec.md) | FastAPI routes, job queue, workers |
-| [database.md](docs/database.md) | Postgres schema |
-| [pipeline.md](docs/pipeline.md) | Genblaze pipeline steps and fallbacks |
-| [b2-storage.md](docs/b2-storage.md) | B2 key layout, Object Lock, lifecycle |
-| [api-spec.md](docs/api-spec.md) | REST API contract |
-| [deployment.md](docs/deployment.md) | Production hosting (Vercel, Render, etc.) |
-| [build-order.md](docs/build-order.md) | Day-by-day implementation plan |
-| [env-vars.md](docs/env-vars.md) | Environment variables reference |
+1. Open **Dashboard** → submit a brief (brand + description)
+2. Watch **pipeline progress** (storyboard → animate → voiceover → score → compose)
+3. View **variants** with thumbnails and SHA-256 hash
+4. Open **Provenance Viewer** → click **Verify Manifest** (green check)
+5. **Fork** a run with a different animate model → see `parent_run_id` lineage
+6. Browse everything in **Library**
 
 ---
 
-## Providers & Models
+## Production Setup
 
-| Step | Primary | Fallback |
-|------|---------|----------|
-| Storyboard | Seedream 5.0 Lite (GMI Cloud) | FLUX Kontext Pro, Imagen 4 |
-| Animate | Kling, Wan 2.6, Pixverse (concurrent) | Runway Gen-4 Turbo, Luma Ray 2 |
-| Voiceover | ElevenLabs | NVIDIA Magpie TTS |
-| Score | Stability Audio | MiniMax (GMI Cloud) |
-| Compose | ffmpeg (built-in) | — |
+With Docker, Postgres, B2, and provider API keys — see [docs/setup.md](docs/setup.md).
 
----
-
-## B2 Usage
-
-- **Bucket:** `adproof-assets` — content-addressable key layout under `runs/{run_id}/`
-- **Object Lock:** All `*.manifest.json` files — governance mode, 30-day retention
-- **Lifecycle:** Intermediate `steps/` auto-deleted after 7 days; variants and manifests kept
-- **Event Notifications:** `variants/*/final.mp4` PUT → webhook → SSE to frontend
-
-Details: [docs/b2-storage.md](docs/b2-storage.md)
-
----
-
-## Genblaze Usage
-
-Pipeline defined in `apps/worker/pipeline/ad_pipeline.py`:
-
-- 5 chained steps with per-step SHA-256 manifests
-- Concurrent fan-out on animate step
-- Automatic fallback chains when providers stall
-- Full replay via `genblaze replay manifest.json`
-- Fork support with `parent_run_id` lineage tracking
-
-Details: [docs/pipeline.md](docs/pipeline.md)
-
----
-
-## Deployment
+```bash
+cd infra && docker compose up -d
+cp .env.example .env   # fill in B2 + provider keys
+python infra/b2-bucket-setup.py
+cd apps/worker && alembic upgrade head
+```
 
 | Component | Host |
 |-----------|------|
 | Frontend | Vercel (`apps/web`) |
 | API + Worker | Render / Railway / Fly.io |
 | Postgres | Neon / Supabase |
-| Redis | Upstash |
+| Redis | Upstash (optional) |
 | Storage | Backblaze B2 |
 
 Full guide: [docs/deployment.md](docs/deployment.md)
 
 ---
 
-## License
+## What It Does
 
-TBD
+| Feature | Status |
+|---------|--------|
+| Brief → pipeline → variant | ✅ Demo + Genblaze-ready |
+| Per-step manifests (SHA-256) | ✅ |
+| Provenance viewer + verify | ✅ |
+| Fork / replay with lineage | ✅ |
+| Library browse | ✅ |
+| B2 Object Lock | ✅ When B2 configured |
+| Real AI providers | Set `ADPROOF_DEMO_MODE=false` + API keys |
+
+---
+
+## Tech Stack
+
+Next.js · FastAPI · SQLAlchemy · Genblaze SDK · Backblaze B2 · ffmpeg
+
+---
+
+## Documentation
+
+| Doc | Contents |
+|-----|----------|
+| [architecture.md](docs/architecture.md) | System overview |
+| [setup.md](docs/setup.md) | Local dev |
+| [frontend-spec.md](docs/frontend-spec.md) | UI spec |
+| [backend-spec.md](docs/backend-spec.md) | API spec |
+| [pipeline.md](docs/pipeline.md) | Genblaze pipeline |
+| [b2-storage.md](docs/b2-storage.md) | B2 key layout |
+| [deployment.md](docs/deployment.md) | Hosting guide |
+| [build-order.md](docs/build-order.md) | Build plan |
+
+---
+
+## Providers (Production)
+
+| Step | Primary | Fallback |
+|------|---------|----------|
+| Storyboard | Seedream (GMI Cloud) | FLUX, Imagen |
+| Animate | Kling, Wan, Pixverse | Runway, Luma |
+| Voiceover | ElevenLabs | NVIDIA Magpie |
+| Score | Stability Audio | MiniMax |
+| Compose | ffmpeg | — |
