@@ -12,10 +12,12 @@ from sqlalchemy import (
     Numeric,
     String,
     Text,
-    create_engine,
 )
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, relationship
+
+
+def _uuid_str() -> str:
+    return str(uuid.uuid4())
 
 
 class Base(DeclarativeBase):
@@ -25,7 +27,7 @@ class Base(DeclarativeBase):
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(String(36), primary_key=True, default=_uuid_str)
     email = Column(Text, unique=True, nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
@@ -35,8 +37,8 @@ class User(Base):
 class Brief(Base):
     __tablename__ = "briefs"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
     brand_name = Column(Text, nullable=False)
     brief_text = Column(Text, nullable=False)
     reference_image_key = Column(Text, nullable=True)
@@ -50,13 +52,14 @@ class Brief(Base):
 class Run(Base):
     __tablename__ = "runs"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    brief_id = Column(UUID(as_uuid=True), ForeignKey("briefs.id"), nullable=False)
-    parent_run_id = Column(UUID(as_uuid=True), ForeignKey("runs.id"), nullable=True)
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    brief_id = Column(String(36), ForeignKey("briefs.id"), nullable=False)
+    parent_run_id = Column(String(36), ForeignKey("runs.id"), nullable=True)
     status = Column(String(20), nullable=False, default="queued")
     started_at = Column(DateTime(timezone=True), nullable=True)
     finished_at = Column(DateTime(timezone=True), nullable=True)
     total_cost_usd = Column(Numeric(10, 4), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
     brief = relationship("Brief", back_populates="runs")
     parent_run = relationship("Run", remote_side=[id])
@@ -67,8 +70,8 @@ class Run(Base):
 class RunStep(Base):
     __tablename__ = "run_steps"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    run_id = Column(UUID(as_uuid=True), ForeignKey("runs.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    run_id = Column(String(36), ForeignKey("runs.id"), nullable=False)
     step_name = Column(String(50), nullable=False)
     provider = Column(Text, nullable=True)
     model = Column(Text, nullable=True)
@@ -86,8 +89,8 @@ class RunStep(Base):
 class Variant(Base):
     __tablename__ = "variants"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    run_id = Column(UUID(as_uuid=True), ForeignKey("runs.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    run_id = Column(String(36), ForeignKey("runs.id"), nullable=False)
     asset_key = Column(Text, nullable=False)
     thumbnail_key = Column(Text, nullable=True)
     manifest_key = Column(Text, nullable=False)
