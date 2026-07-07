@@ -1,0 +1,58 @@
+---
+description: Enforce atomic git commits — one file, one change, one commit
+alwaysApply: true
+---
+
+# Git Commit Rules — Atomic Commits Only
+
+## Core Rule
+Every commit must be **atomic**: one logical change, scoped as tightly as possible.
+
+## Commit Scope
+
+- **One file per commit** whenever possible.
+- If a single logical change genuinely touches multiple files (e.g. renaming a shared constant), group only those files — nothing else.
+- Never bundle unrelated changes into one commit, even if they happen in the same session or prompt.
+
+## When the Same File Changes Multiple Times in One Session
+
+- Each distinct change to the same file = its own commit.
+- Example: if `app.py` is modified to fix a crash, then later modified again to add a feature — those are **two separate commits**, not one.
+- Do not squash them together.
+
+## Commit Message Format
+
+```
+<type>(<file>): <short description>
+```
+
+Types: `fix` | `feat` | `refactor` | `style` | `chore` | `docs`
+
+Examples:
+```
+fix(app.py): handle null response on startup crash
+feat(auth.js): add token expiry check
+refactor(utils.py): extract date formatter to helper function
+```
+
+## What NOT to Do
+
+- Do NOT commit 3–4 files in one go unless they are truly inseparable.
+- Do NOT add a feature and fix a bug in the same commit.
+- Do NOT include unrelated files just because they were open or touched.
+- Do NOT commit "add functions + reduce errors + update settings" all at once.
+
+## Checklist Before Every Commit
+
+1. Does this commit change only **one thing**?
+2. Is it scoped to the **fewest files** possible?
+3. Does the commit message clearly describe **what and why**?
+4. If the same file was already committed this session — is this a genuinely **different change**?
+
+If any answer is no — split the commit further.
+
+## Special Cases
+
+- **App crashes:** commit the root cause fix first, then each follow-up fix separately.
+- **Settings changes:** commit config files independently from code changes.
+- **New features:** commit implementation first, then tests, then config — separately.

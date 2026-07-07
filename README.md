@@ -1,11 +1,5 @@
 # AdProof
 
-> **Absurd for everyone, and every ad it makes can prove it's real.**
-
-Open-source, self-serve AI ad pipeline with cryptographic provenance. Built for the Backblaze Generative Media Hackathon (Genblaze + B2).
-
----
-
 ## Quick Start (Tonight — Demo Mode)
 
 Works **without Docker, B2, or AI API keys**. Uses SQLite + local storage + simulated pipeline.

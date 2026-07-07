@@ -8,7 +8,6 @@ Quick orientation for new teammates joining the hackathon build.
 
 Open-source AI ad generator with **cryptographic provenance**. Users submit a text brief, the Genblaze pipeline produces video variants, and every output has a verifiable manifest on Backblaze B2.
 
-**Pitch:** "Absurd for everyone, and every ad it makes can prove it's real."
 
 ---
 

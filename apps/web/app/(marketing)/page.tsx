@@ -5,9 +5,6 @@ export default function MarketingPage() {
     <main>
       <div className="card" style={{ marginBottom: "1.5rem" }}>
         <h1>AdProof</h1>
-        <p style={{ fontSize: "1.15rem", color: "var(--text)" }}>
-          Absurd for everyone, and every ad it makes can prove it&apos;s real.
-        </p>
         <p>
           Open, self-serve AI ad pipeline with cryptographic provenance on Backblaze B2.
           Generate 30–60s video variants, verify manifests, fork runs with full lineage.

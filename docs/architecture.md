@@ -1,15 +1,12 @@
 # AdProof — System Architecture
 
 > **Hackathon:** Backblaze Generative Media Hackathon (Genblaze + B2)  
-> **Pitch:** "Absurd for everyone, and every ad it makes can prove it's real."
-
 ---
 
 ## 1. Business Model
 
-AdProof borrows the shape of [YC's Absurd](https://absurd.com) (AI brand/performance ads at scale — prompt to production-quality video in 72 hours) but differs in three ways:
 
-| Dimension | Absurd | AdProof |
+| Dimension || AdProof |
 |-----------|--------|---------|
 | Access | Closed, agency-style — they run the pipeline | Open, self-serve — the pipeline **is** the product |
 | Provenance | None | Every output carries a cryptographic proof of how it was made |
