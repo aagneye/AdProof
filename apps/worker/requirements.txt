@@ -9,7 +9,7 @@ pydantic-settings>=2.1.0
 python-multipart>=0.0.9
 boto3>=1.34.0
 python-dotenv>=1.0.0
+Pillow>=10.0.0
 
-# Genblaze (install when available)
+# Genblaze (optional — pip install genblaze for production pipeline)
 # genblaze
-# genblaze-s3
