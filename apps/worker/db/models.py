@@ -1,0 +1,99 @@
+"""SQLAlchemy models — see docs/database.md for full schema."""
+
+import uuid
+from datetime import datetime
+
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    create_engine,
+)
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import DeclarativeBase, relationship
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email = Column(Text, unique=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+    briefs = relationship("Brief", back_populates="user")
+
+
+class Brief(Base):
+    __tablename__ = "briefs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    brand_name = Column(Text, nullable=False)
+    brief_text = Column(Text, nullable=False)
+    reference_image_key = Column(Text, nullable=True)
+    status = Column(String(20), nullable=False, default="pending")
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+    user = relationship("User", back_populates="briefs")
+    runs = relationship("Run", back_populates="brief")
+
+
+class Run(Base):
+    __tablename__ = "runs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    brief_id = Column(UUID(as_uuid=True), ForeignKey("briefs.id"), nullable=False)
+    parent_run_id = Column(UUID(as_uuid=True), ForeignKey("runs.id"), nullable=True)
+    status = Column(String(20), nullable=False, default="queued")
+    started_at = Column(DateTime(timezone=True), nullable=True)
+    finished_at = Column(DateTime(timezone=True), nullable=True)
+    total_cost_usd = Column(Numeric(10, 4), nullable=True)
+
+    brief = relationship("Brief", back_populates="runs")
+    parent_run = relationship("Run", remote_side=[id])
+    steps = relationship("RunStep", back_populates="run")
+    variants = relationship("Variant", back_populates="run")
+
+
+class RunStep(Base):
+    __tablename__ = "run_steps"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    run_id = Column(UUID(as_uuid=True), ForeignKey("runs.id"), nullable=False)
+    step_name = Column(String(50), nullable=False)
+    provider = Column(Text, nullable=True)
+    model = Column(Text, nullable=True)
+    status = Column(String(20), nullable=False)
+    fallback_triggered = Column(Boolean, nullable=False, default=False)
+    cost_usd = Column(Numeric(10, 4), nullable=True)
+    latency_ms = Column(Integer, nullable=True)
+    manifest_key = Column(Text, nullable=True)
+    asset_key = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+    run = relationship("Run", back_populates="steps")
+
+
+class Variant(Base):
+    __tablename__ = "variants"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    run_id = Column(UUID(as_uuid=True), ForeignKey("runs.id"), nullable=False)
+    asset_key = Column(Text, nullable=False)
+    thumbnail_key = Column(Text, nullable=True)
+    manifest_key = Column(Text, nullable=False)
+    sha256_hash = Column(Text, nullable=False)
+    provider_summary = Column(Text, nullable=True)
+    selected = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+    run = relationship("Run", back_populates="variants")
