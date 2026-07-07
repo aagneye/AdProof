@@ -22,7 +22,10 @@ env/
 
 # Next.js
 apps/web/.next/
-apps/web/out/
+apps/web/node_modules/
+apps/worker/.venv/
+apps/worker/local_storage/
+apps/worker/adproof_local.db
 
 # IDE
 .idea/
