@@ -1,1 +1,1 @@
-"""Score step — Stability Audio / MiniMax background music."""
+"""Score step — live: Stability Audio via live_pipeline.py."""
