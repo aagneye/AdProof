@@ -10,6 +10,7 @@ python-multipart>=0.0.9
 boto3>=1.34.0
 python-dotenv>=1.0.0
 Pillow>=10.0.0
+httpx>=0.27.0
 
-# Genblaze (optional — pip install genblaze for production pipeline)
-# genblaze
+# Genblaze (optional — requires Python 3.11+)
+# pip install genblaze-core genblaze-gmicloud genblaze-s3
