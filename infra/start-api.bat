@@ -3,6 +3,7 @@ REM Start AdProof backend (SQLite demo mode)
 cd /d %~dp0..\apps\worker
 set DATABASE_URL=sqlite:///./adproof_local.db
 set ADPROOF_DEMO_MODE=true
+set PIPELINE_MODE=mock
 set API_BASE_URL=http://localhost:8000
 set CORS_ORIGINS=http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001
 if not exist .venv\Scripts\python.exe (
