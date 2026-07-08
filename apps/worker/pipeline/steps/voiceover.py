@@ -1,1 +1,1 @@
-"""Voiceover step — ElevenLabs / NVIDIA Magpie TTS."""
+"""Voiceover step — live: ElevenLabs TTS via live_pipeline.py."""
