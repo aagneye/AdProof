@@ -14,11 +14,14 @@ class Settings(BaseSettings):
     b2_bucket_name: str = "adproof-assets"
     b2_endpoint: str = "https://s3.us-west-004.backblazeb2.com"
     cors_origins: str = "http://localhost:3000"
-    demo_mode: bool = True
+    pipeline_mode: str = "mock"  # mock | live
     local_storage_path: str = "./local_storage"
     demo_user_email: str = "demo@adproof.local"
     api_base_url: str = "http://localhost:8000"
     use_rq_worker: bool = False
+    gmicloud_api_key: str = ""
+    elevenlabs_api_key: str = ""
+    stability_api_key: str = ""
 
     class Config:
         env_file = ".env"
@@ -33,12 +36,12 @@ class Settings(BaseSettings):
         return bool(self.b2_key_id and self.b2_app_key)
 
     @property
-    def effective_demo_mode(self) -> bool:
-        if os.environ.get("ADPROOF_DEMO_MODE", "").lower() in ("1", "true", "yes"):
-            return True
-        if self.demo_mode and not self.has_b2_credentials:
-            return True
-        return self.demo_mode
+    def is_mock_mode(self) -> bool:
+        return self.pipeline_mode.lower() == "mock"
+
+    @property
+    def is_live_mode(self) -> bool:
+        return self.pipeline_mode.lower() == "live"
 
 
 @lru_cache
