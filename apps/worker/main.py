@@ -38,13 +38,18 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="AdProof API", version="0.1.0", lifespan=lifespan)
 
 settings = get_settings()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origin_list,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
+# Demo mode: allow any localhost port (Next.js may use 3001, 3002, etc.)
+_cors_kwargs: dict = {
+    "allow_origins": settings.cors_origin_list,
+    "allow_credentials": True,
+    "allow_methods": ["*"],
+    "allow_headers": ["*"],
+}
+if settings.effective_demo_mode:
+    _cors_kwargs["allow_origin_regex"] = r"http://(localhost|127\.0\.0\.1)(:\d+)?"
+
+app.add_middleware(CORSMiddleware, **_cors_kwargs)
 
 app.include_router(briefs_router, prefix="/briefs", tags=["briefs"])
 app.include_router(runs_router, prefix="/runs", tags=["runs"])
