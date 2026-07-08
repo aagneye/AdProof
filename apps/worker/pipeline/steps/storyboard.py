@@ -1,1 +1,1 @@
-"""Storyboard step — text to keyframes (Seedream/FLUX/Imagen)."""
+"""Storyboard step — live: GMI Cloud seedream via live_pipeline.py."""
