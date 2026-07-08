@@ -46,7 +46,7 @@ _cors_kwargs: dict = {
     "allow_methods": ["*"],
     "allow_headers": ["*"],
 }
-if settings.effective_demo_mode:
+if settings.is_mock_mode:
     _cors_kwargs["allow_origin_regex"] = r"http://(localhost|127\.0\.0\.1)(:\d+)?"
 
 app.add_middleware(CORSMiddleware, **_cors_kwargs)
@@ -83,5 +83,6 @@ def health():
         "status": "ok",
         "db": db_ok,
         "redis": redis_ok,
-        "demo_mode": settings.effective_demo_mode,
+        "pipeline_mode": settings.pipeline_mode,
+        "mock_mode": settings.is_mock_mode,
     }
