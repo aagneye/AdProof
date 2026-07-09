@@ -13,25 +13,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from api.assets import router as assets_router
+from api.auth import router as auth_router
 from api.briefs import router as briefs_router
 from api.library import router as library_router
 from api.runs import router as runs_router
 from api.webhooks import router as webhooks_router
 from config import get_settings
 from db.models import Base
+from db.migrate import ensure_user_auth_columns
 from db.session import engine
-from services.seed import get_or_create_demo_user
-from db.session import SessionLocal
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
-    try:
-        get_or_create_demo_user(db)
-    finally:
-        db.close()
+    ensure_user_auth_columns()
     yield
 
 
@@ -51,6 +47,7 @@ if settings.is_mock_mode:
 
 app.add_middleware(CORSMiddleware, **_cors_kwargs)
 
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(briefs_router, prefix="/briefs", tags=["briefs"])
 app.include_router(runs_router, prefix="/runs", tags=["runs"])
 app.include_router(library_router, prefix="/library", tags=["library"])
