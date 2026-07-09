@@ -1,10 +1,11 @@
-"""Library API — GET /library paginated variants."""
+"""Library API — GET /library paginated variants for the current user."""
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from auth.dependencies import get_current_user
 from config import get_settings
-from db.models import Brief, Run, Variant
+from db.models import Brief, Run, User, Variant
 from db.session import get_db
 from schemas import LibraryItem, LibraryResponse
 from storage.b2_client import get_storage
@@ -19,11 +20,13 @@ def list_library(
     provider: str | None = None,
     brand: str | None = None,
     db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     q = (
         db.query(Variant, Run, Brief)
         .join(Run, Variant.run_id == Run.id)
         .join(Brief, Run.brief_id == Brief.id)
+        .filter(Brief.user_id == user.id)
         .order_by(Variant.created_at.desc())
     )
     if provider:
