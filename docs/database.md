@@ -25,15 +25,20 @@ users
 
 ### `users`
 
-Auth can be minimal for hackathon (email + magic link or demo user).
+Google OAuth via NextAuth (frontend). Backend stores profile and issues JWT for API calls.
 
 ```sql
 CREATE TABLE users (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email       TEXT UNIQUE NOT NULL,
+  google_id   TEXT UNIQUE,
+  name        TEXT,
+  avatar_url  TEXT,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ```
+
+Briefs, runs, and library queries are scoped by `user_id` — users cannot read another account's data.
 
 ### `briefs`
 
