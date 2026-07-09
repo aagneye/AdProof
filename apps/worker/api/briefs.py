@@ -1,13 +1,14 @@
-"""Briefs API — POST /briefs, GET /briefs/:id."""
+"""Briefs API — POST /briefs, GET /briefs, GET /briefs/:id."""
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends
 from sqlalchemy.orm import Session
 
-from db.models import Brief, Run
+from auth.dependencies import get_current_user
+from db.models import Brief, Run, User
 from db.session import get_db
 from pipeline.runner import execute_run
-from schemas import BriefResponse, CreateBriefRequest, RunSummary
-from services.seed import get_or_create_demo_user
+from schemas import BriefListResponse, BriefResponse, CreateBriefRequest, RunSummary
+from services.access import get_user_brief
 
 router = APIRouter()
 
@@ -22,13 +23,60 @@ def _run_in_background(brief_id, run_id):
         db.close()
 
 
+def _brief_response(brief: Brief, latest_run: Run | None) -> BriefResponse:
+    latest = None
+    if latest_run:
+        latest = RunSummary(
+            id=latest_run.id,
+            status=latest_run.status,
+            started_at=latest_run.started_at,
+            finished_at=latest_run.finished_at,
+            total_cost_usd=str(latest_run.total_cost_usd) if latest_run.total_cost_usd else None,
+        )
+    return BriefResponse(
+        id=brief.id,
+        user_id=brief.user_id,
+        brand_name=brief.brand_name,
+        brief_text=brief.brief_text,
+        reference_image_key=brief.reference_image_key,
+        status=brief.status,
+        created_at=brief.created_at,
+        run_id=latest_run.id if latest_run else None,
+        latest_run=latest,
+    )
+
+
+@router.get("", response_model=BriefListResponse)
+def list_briefs(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    briefs = (
+        db.query(Brief)
+        .filter(Brief.user_id == user.id)
+        .order_by(Brief.created_at.desc())
+        .limit(50)
+        .all()
+    )
+    items = []
+    for brief in briefs:
+        latest_run = (
+            db.query(Run)
+            .filter(Run.brief_id == brief.id)
+            .order_by(Run.created_at.desc())
+            .first()
+        )
+        items.append(_brief_response(brief, latest_run))
+    return BriefListResponse(items=items, total=len(items))
+
+
 @router.post("", response_model=BriefResponse, status_code=201)
 def create_brief(
     body: CreateBriefRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
-    user = get_or_create_demo_user(db)
     brief = Brief(
         user_id=user.id,
         brand_name=body.brand_name,
@@ -47,48 +95,20 @@ def create_brief(
 
     background_tasks.add_task(_run_in_background, brief.id, run.id)
 
-    return BriefResponse(
-        id=brief.id,
-        user_id=brief.user_id,
-        brand_name=brief.brand_name,
-        brief_text=brief.brief_text,
-        reference_image_key=brief.reference_image_key,
-        status=brief.status,
-        created_at=brief.created_at,
-        run_id=run.id,
-    )
+    return _brief_response(brief, run)
 
 
 @router.get("/{brief_id}", response_model=BriefResponse)
-def get_brief(brief_id: str, db: Session = Depends(get_db)):
-    brief = db.query(Brief).filter(Brief.id == brief_id).first()
-    if not brief:
-        raise HTTPException(status_code=404, detail="Brief not found")
-
+def get_brief(
+    brief_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    brief = get_user_brief(db, brief_id, user)
     latest_run = (
         db.query(Run)
         .filter(Run.brief_id == brief.id)
         .order_by(Run.created_at.desc())
         .first()
     )
-    latest = None
-    if latest_run:
-        latest = RunSummary(
-            id=latest_run.id,
-            status=latest_run.status,
-            started_at=latest_run.started_at,
-            finished_at=latest_run.finished_at,
-            total_cost_usd=str(latest_run.total_cost_usd) if latest_run.total_cost_usd else None,
-        )
-
-    return BriefResponse(
-        id=brief.id,
-        user_id=brief.user_id,
-        brand_name=brief.brand_name,
-        brief_text=brief.brief_text,
-        reference_image_key=brief.reference_image_key,
-        status=brief.status,
-        created_at=brief.created_at,
-        run_id=latest_run.id if latest_run else None,
-        latest_run=latest,
-    )
+    return _brief_response(brief, latest_run)
