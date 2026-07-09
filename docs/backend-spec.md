@@ -11,7 +11,8 @@
 apps/worker/
 ├── main.py                 # FastAPI app entrypoint
 ├── api/
-│   ├── briefs.py           # POST /briefs, GET /briefs/:id
+│   ├── auth.py             # POST /auth/google, GET /auth/me
+│   ├── briefs.py           # POST /briefs, GET /briefs, GET /briefs/:id
 │   ├── runs.py             # GET /runs/:id, POST replay/fork, verify, manifest
 │   ├── library.py          # GET /library
 │   └── webhooks.py         # Provider async callbacks
@@ -196,13 +197,17 @@ Alembic migrations in `db/migrations/`.
 
 ---
 
-## 9. Auth (Hackathon MVP)
+## 9. Auth
 
-Minimal: single demo user or email magic link.
+Google OAuth on the frontend (NextAuth.js). Backend issues JWT bearer tokens after `POST /auth/google`.
 
-- `users` table exists for schema completeness
-- MVP can hardcode `user_id` or skip auth middleware
-- Production: add JWT/session middleware before launch
+- `auth/jwt.py` — create and validate API tokens
+- `auth/dependencies.py` — `get_current_user` FastAPI dependency
+- `services/users.py` — upsert Google profile into `users`
+- `services/access.py` — ownership checks on briefs and runs
+- All `/briefs`, `/runs`, `/library` routes require `Authorization: Bearer <token>`
+
+See [auth.md](auth.md) and [deployment.md](deployment.md#12-google-oauth-nextauth).
 
 ---
 
