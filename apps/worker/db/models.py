@@ -29,6 +29,9 @@ class User(Base):
 
     id = Column(String(36), primary_key=True, default=_uuid_str)
     email = Column(Text, unique=True, nullable=False)
+    google_id = Column(Text, unique=True, nullable=True)
+    name = Column(Text, nullable=True)
+    avatar_url = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
     briefs = relationship("Brief", back_populates="user")
