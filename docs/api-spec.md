@@ -4,6 +4,49 @@
 **Base URL (prod):** `https://api.<your-domain>`  
 **OpenAPI:** `/docs` (Swagger UI), `/redoc`
 
+All routes except `GET /health` and `POST /auth/google` require:
+
+```
+Authorization: Bearer <access_token>
+```
+
+Obtain a token by signing in with Google on the frontend (NextAuth syncs via `POST /auth/google`).
+
+---
+
+## 0. Auth
+
+### `POST /auth/google`
+
+Upsert user from Google OAuth profile (called by NextAuth server).
+
+**Request:**
+
+```json
+{
+  "email": "user@example.com",
+  "google_id": "google-sub-id",
+  "name": "Jane Doe",
+  "picture": "https://..."
+}
+```
+
+**Response `200`:**
+
+```json
+{
+  "access_token": "jwt...",
+  "user_id": "uuid",
+  "email": "user@example.com",
+  "name": "Jane Doe",
+  "avatar_url": "https://..."
+}
+```
+
+### `GET /auth/me`
+
+Returns the authenticated user profile. Requires bearer token.
+
 ---
 
 ## 1. Briefs
@@ -39,7 +82,22 @@ Optional: multipart upload for reference image (returns `reference_image_key`).
 }
 ```
 
-Side effects: creates `briefs` row, creates `runs` row (`status=queued`), enqueues job.
+Side effects: creates `briefs` row, creates `runs` row (`status=queued`), enqueues job. Requires bearer token; brief is owned by authenticated user.
+
+---
+
+### `GET /briefs`
+
+List briefs for the authenticated user (newest first, max 50).
+
+**Response `200`:**
+
+```json
+{
+  "items": [ { "id": "uuid", "brand_name": "...", "status": "done", "...": "..." } ],
+  "total": 3
+}
+```
 
 ---
 
