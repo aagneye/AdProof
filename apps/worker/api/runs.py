@@ -1,13 +1,13 @@
 """Runs API — GET /runs/:id, replay, fork, verify, manifest."""
 
 from datetime import datetime, timedelta, timezone
-from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from auth.dependencies import get_current_user
 from config import get_settings
-from db.models import Run, Variant
+from db.models import Run, User, Variant
 from db.session import get_db
 from manifest.replay import execute_fork
 from manifest.verify import verify_run_manifest
@@ -20,6 +20,7 @@ from schemas import (
     VariantResponse,
     VerifyResponse,
 )
+from services.access import get_user_run
 from storage.b2_client import get_storage
 
 router = APIRouter()
@@ -40,10 +41,12 @@ def _variant_urls(variant: Variant) -> tuple[str | None, str | None]:
 
 
 @router.get("/{run_id}", response_model=RunDetailResponse)
-def get_run(run_id: str, db: Session = Depends(get_db)):
-    run = db.query(Run).filter(Run.id == run_id).first()
-    if not run:
-        raise HTTPException(status_code=404, detail="Run not found")
+def get_run(
+    run_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    run = get_user_run(db, run_id, user)
 
     steps = [
         RunStepResponse.model_validate(s)
@@ -85,10 +88,9 @@ def replay_run(
     run_id: str,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
-    parent = db.query(Run).filter(Run.id == run_id).first()
-    if not parent:
-        raise HTTPException(status_code=404, detail="Run not found")
+    parent = get_user_run(db, run_id, user)
 
     child = Run(brief_id=parent.brief_id, parent_run_id=parent.id, status="queued")
     db.add(child)
@@ -104,10 +106,9 @@ def fork_run(
     body: ForkRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
-    parent = db.query(Run).filter(Run.id == run_id).first()
-    if not parent:
-        raise HTTPException(status_code=404, detail="Run not found")
+    parent = get_user_run(db, run_id, user)
 
     child = Run(brief_id=parent.brief_id, parent_run_id=parent.id, status="queued")
     db.add(child)
@@ -118,7 +119,12 @@ def fork_run(
 
 
 @router.get("/{run_id}/manifest", response_model=ManifestResponse)
-def get_manifest(run_id: str, db: Session = Depends(get_db)):
+def get_manifest(
+    run_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    get_user_run(db, run_id, user)
     variant = (
         db.query(Variant).filter(Variant.run_id == run_id).order_by(Variant.created_at).first()
     )
@@ -138,7 +144,12 @@ def get_manifest(run_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/{run_id}/verify", response_model=VerifyResponse)
-def verify_run(run_id: str, db: Session = Depends(get_db)):
+def verify_run(
+    run_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    get_user_run(db, run_id, user)
     try:
         result = verify_run_manifest(db, run_id)
     except ValueError as e:
