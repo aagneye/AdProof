@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { forkRun } from "@/lib/api-client";
 
 const ANIMATE_MODELS = [
@@ -13,17 +14,27 @@ const ANIMATE_MODELS = [
 ];
 
 export default function ReplayPage({ params }: { params: { runId: string } }) {
+  const { data: session } = useSession();
+  const token = session?.accessToken;
   const [model, setModel] = useState(ANIMATE_MODELS[1]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleFork() {
+    if (!token) {
+      setError("You must be signed in to fork a run.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const child = await forkRun(params.runId, {
-        animate: { provider: "gmicloud", model },
-      });
+      const child = await forkRun(
+        params.runId,
+        {
+          animate: { provider: "gmicloud", model },
+        },
+        token,
+      );
       window.location.href = `/run/${child.id}`;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Fork failed");
