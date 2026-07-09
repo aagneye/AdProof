@@ -2,26 +2,30 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { getLibrary } from "@/lib/api-client";
 import type { LibraryItem } from "@/lib/types";
 
 export default function LibraryPage() {
+  const { data: session } = useSession();
+  const token = session?.accessToken;
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [brand, setBrand] = useState("");
   const [provider, setProvider] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!token) return;
     setLoading(true);
-    getLibrary({ brand: brand || undefined, provider: provider || undefined })
+    getLibrary({ brand: brand || undefined, provider: provider || undefined }, token)
       .then((res) => setItems(res.items))
       .finally(() => setLoading(false));
-  }, [brand, provider]);
+  }, [brand, provider, token]);
 
   return (
     <main>
       <h1>Library</h1>
-      <p>All generated variants with provenance links.</p>
+      <p>Your generated variants with provenance links.</p>
 
       <div className="grid grid-2" style={{ margin: "1rem 0" }}>
         <input
