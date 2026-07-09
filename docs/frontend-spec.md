@@ -10,7 +10,11 @@
 apps/web/
 ├── app/
 │   ├── (marketing)/
-│   │   └── page.tsx              # Landing page
+│   │   └── page.tsx              # Landing page (hero, login/signup CTAs)
+│   ├── login/
+│   │   └── page.tsx              # Google sign-in
+│   ├── signup/
+│   │   └── page.tsx              # Google sign-up (same OAuth flow)
 │   ├── dashboard/
 │   │   ├── page.tsx              # Brief list + "New Brief" CTA
 │   │   └── layout.tsx            # Dashboard shell (nav, auth)
