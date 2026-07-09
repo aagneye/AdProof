@@ -1,5 +1,6 @@
 import "./globals.css";
 import { NavHeader } from "@/components/NavHeader";
+import { Providers } from "@/components/Providers";
 
 export const metadata = {
   title: "AdProof",
@@ -14,8 +15,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <NavHeader />
-        {children}
+        <Providers>
+          <NavHeader />
+          {children}
+        </Providers>
       </body>
     </html>
   );
