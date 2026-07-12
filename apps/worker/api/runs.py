@@ -21,6 +21,7 @@ from schemas import (
     VerifyResponse,
 )
 from services.access import get_user_run
+from services.activity import log_activity
 from storage.b2_client import get_storage
 
 router = APIRouter()
@@ -97,6 +98,14 @@ def replay_run(
     db.commit()
     db.refresh(child)
     background_tasks.add_task(_run_child_background, child.brief_id, child.id, {})
+    log_activity(
+        db,
+        user_id=user.id,
+        action="run.replay",
+        resource_type="run",
+        resource_id=child.id,
+        metadata={"parent_run_id": parent.id},
+    )
     return RunSummary(id=child.id, status=child.status)
 
 
@@ -115,6 +124,14 @@ def fork_run(
     db.commit()
     db.refresh(child)
     background_tasks.add_task(_run_child_background, child.brief_id, child.id, body.overrides)
+    log_activity(
+        db,
+        user_id=user.id,
+        action="run.fork",
+        resource_type="run",
+        resource_id=child.id,
+        metadata={"parent_run_id": parent.id, "overrides": body.overrides},
+    )
     return RunSummary(id=child.id, status=child.status)
 
 
@@ -154,4 +171,12 @@ def verify_run(
         result = verify_run_manifest(db, run_id)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    log_activity(
+        db,
+        user_id=user.id,
+        action="run.verify",
+        resource_type="run",
+        resource_id=run_id,
+        metadata={"match": result.get("match")},
+    )
     return VerifyResponse(**result)
