@@ -32,9 +32,27 @@ class User(Base):
     google_id = Column(Text, unique=True, nullable=True)
     name = Column(Text, nullable=True)
     avatar_url = Column(Text, nullable=True)
+    last_login_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
     briefs = relationship("Brief", back_populates="user")
+    activities = relationship("UserActivity", back_populates="user")
+
+
+class UserActivity(Base):
+    """Append-only log of what each authenticated user does."""
+
+    __tablename__ = "user_activities"
+
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
+    action = Column(String(80), nullable=False, index=True)
+    resource_type = Column(String(50), nullable=True)
+    resource_id = Column(String(36), nullable=True)
+    metadata_json = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+    user = relationship("User", back_populates="activities")
 
 
 class Brief(Base):
