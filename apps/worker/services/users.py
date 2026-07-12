@@ -1,5 +1,7 @@
 """User lookup and Google OAuth upsert."""
 
+from datetime import datetime, timezone
+
 from sqlalchemy.orm import Session
 
 from db.models import User
@@ -31,6 +33,7 @@ def upsert_google_user(
         )
         db.add(user)
 
+    user.last_login_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(user)
     return user
