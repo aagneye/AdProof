@@ -9,6 +9,7 @@ from db.session import get_db
 from pipeline.runner import execute_run
 from schemas import BriefListResponse, BriefResponse, CreateBriefRequest, RunSummary
 from services.access import get_user_brief
+from services.activity import log_activity
 
 router = APIRouter()
 
@@ -94,6 +95,15 @@ def create_brief(
     db.refresh(run)
 
     background_tasks.add_task(_run_in_background, brief.id, run.id)
+
+    log_activity(
+        db,
+        user_id=user.id,
+        action="brief.create",
+        resource_type="brief",
+        resource_id=brief.id,
+        metadata={"brand_name": brief.brand_name, "run_id": run.id},
+    )
 
     return _brief_response(brief, run)
 
