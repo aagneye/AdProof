@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useAppSession } from "@/components/SessionProvider";
 import { forkRun } from "@/lib/api-client";
 
 const ANIMATE_MODELS = [
@@ -14,7 +14,7 @@ const ANIMATE_MODELS = [
 ];
 
 export default function ReplayPage({ params }: { params: { runId: string } }) {
-  const { data: session } = useSession();
+  const { data: session } = useAppSession();
   const token = session?.accessToken;
   const [model, setModel] = useState(ANIMATE_MODELS[1]);
   const [loading, setLoading] = useState(false);

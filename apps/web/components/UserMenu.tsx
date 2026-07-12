@@ -1,6 +1,6 @@
 "use client";
 
-import { signOut } from "next-auth/react";
+import { getSupabaseClient } from "@/lib/supabase-client";
 
 type UserMenuProps = {
   email?: string | null;
@@ -8,6 +8,12 @@ type UserMenuProps = {
 };
 
 export function UserMenu({ email, image }: UserMenuProps) {
+  const handleSignOut = async () => {
+    const supabase = getSupabaseClient();
+    await supabase.auth.signOut();
+    window.location.href = "/";
+  };
+
   return (
     <div className="user-menu">
       {image ? (
@@ -19,7 +25,7 @@ export function UserMenu({ email, image }: UserMenuProps) {
         </span>
       )}
       <span className="user-email">{email}</span>
-      <button type="button" className="btn btn-secondary btn-sm" onClick={() => signOut({ callbackUrl: "/" })}>
+      <button type="button" className="btn btn-secondary btn-sm" onClick={() => void handleSignOut()}>
         Sign out
       </button>
     </div>
