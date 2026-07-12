@@ -1,5 +1,6 @@
 import type { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import GithubProvider from "next-auth/providers/github";
 import { syncGoogleUser } from "./sync-user";
 
 export const authOptions: NextAuthOptions = {
@@ -7,6 +8,10 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+    }),
+    GithubProvider({
+      clientId: process.env.GITHUB_CLIENT_ID || "",
+      clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
     }),
   ],
   pages: {
@@ -35,6 +40,26 @@ export const authOptions: NextAuthOptions = {
         token.email = synced.email;
         token.name = synced.name || googleProfile.name;
         token.picture = synced.avatar_url || googleProfile.picture;
+      }
+      // Handle GitHub provider
+      if (account?.provider === "github" && profile?.email) {
+        const githubProfile = profile as {
+          email?: string;
+          name?: string;
+          avatar_url?: string;
+          id?: number;
+        };
+        const synced = await syncGoogleUser({
+          email: githubProfile.email!,
+          google_id: githubProfile.id?.toString() || account.providerAccountId,
+          name: githubProfile.name,
+          picture: githubProfile.avatar_url,
+        });
+        token.accessToken = synced.access_token;
+        token.userId = synced.user_id;
+        token.email = synced.email;
+        token.name = synced.name || githubProfile.name;
+        token.picture = synced.avatar_url || githubProfile.avatar_url;
       }
       return token;
     },

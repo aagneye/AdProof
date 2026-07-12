@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useAppSession } from "@/components/SessionProvider";
 import { getBrief, getRun } from "@/lib/api-client";
 import { PipelineStatusStream } from "@/components/PipelineStatusStream";
 import { VariantGrid } from "@/components/VariantGrid";
 import type { Brief, RunDetail } from "@/lib/types";
 
 export default function BriefPage({ params }: { params: { briefId: string } }) {
-  const { data: session } = useSession();
+  const { data: session } = useAppSession();
   const token = session?.accessToken;
   const [brief, setBrief] = useState<Brief | null>(null);
   const [run, setRun] = useState<RunDetail | null>(null);

@@ -1,6 +1,6 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { getSupabaseClient } from "@/lib/supabase-client";
 
 type GoogleAuthButtonProps = {
   label?: string;
@@ -11,11 +11,29 @@ export function GoogleAuthButton({
   label = "Continue with Google",
   callbackUrl = "/dashboard",
 }: GoogleAuthButtonProps) {
+  const handleSignIn = async () => {
+    const supabase = getSupabaseClient();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      throw error;
+    }
+  };
+
   return (
     <button
       type="button"
       className="btn btn-google"
-      onClick={() => signIn("google", { callbackUrl })}
+      onClick={() => {
+        void handleSignIn().catch((error) => {
+          console.error("Supabase sign-in failed", error);
+        });
+      }}
     >
       <GoogleIcon />
       {label}

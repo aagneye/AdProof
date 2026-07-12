@@ -1,4 +1,4 @@
-"""Auth API — Google OAuth user sync and JWT issuance."""
+"""Auth API — Supabase OAuth user sync and JWT issuance."""
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -7,18 +7,18 @@ from auth.jwt import create_access_token
 from auth.dependencies import get_current_user
 from db.models import User
 from db.session import get_db
-from schemas import AuthResponse, GoogleAuthRequest, UserResponse
+from schemas import AuthResponse, SupabaseAuthRequest, UserResponse
 from services.users import upsert_google_user
 
 router = APIRouter()
 
 
-@router.post("/google", response_model=AuthResponse)
-def auth_google(body: GoogleAuthRequest, db: Session = Depends(get_db)):
+@router.post("/supabase", response_model=AuthResponse)
+def auth_supabase(body: SupabaseAuthRequest, db: Session = Depends(get_db)):
     user = upsert_google_user(
         db,
         email=body.email,
-        google_id=body.google_id,
+        google_id=body.provider_user_id,
         name=body.name,
         avatar_url=body.picture,
     )

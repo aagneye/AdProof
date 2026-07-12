@@ -7,7 +7,7 @@ export default function SignupPage() {
       <div className="auth-card card">
         <h1>Sign up</h1>
         <p>
-          Create your AdProof account with Google. Your briefs and pipeline history stay private
+          Create your AdProof account with Google through Supabase. Your briefs and pipeline history stay private
           to your account.
         </p>
         <GoogleAuthButton label="Sign up with Google" callbackUrl="/dashboard" />

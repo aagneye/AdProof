@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useAppSession } from "@/components/SessionProvider";
 import { forkRun, getRun, replayRun, verifyRun } from "@/lib/api-client";
 import { ProvenanceTimeline } from "@/components/ProvenanceTimeline";
 import type { RunDetail, VerifyResult } from "@/lib/types";
 
 export default function RunPage({ params }: { params: { runId: string } }) {
-  const { data: session } = useSession();
+  const { data: session } = useAppSession();
   const token = session?.accessToken;
   const [run, setRun] = useState<RunDetail | null>(null);
   const [verify, setVerify] = useState<VerifyResult | null>(null);

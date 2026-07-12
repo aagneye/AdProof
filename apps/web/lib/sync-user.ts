@@ -8,18 +8,18 @@ export interface SyncedUser {
   avatar_url?: string | null;
 }
 
-export async function syncGoogleUser(input: {
+export async function syncSupabaseUser(input: {
   email: string;
-  google_id: string;
+  provider_user_id: string;
   name?: string | null;
   picture?: string | null;
 }): Promise<SyncedUser> {
-  const res = await fetch(`${API_URL}/auth/google`, {
+  const res = await fetch(`${API_URL}/auth/supabase`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       email: input.email,
-      google_id: input.google_id,
+      provider_user_id: input.provider_user_id,
       name: input.name,
       picture: input.picture,
     }),

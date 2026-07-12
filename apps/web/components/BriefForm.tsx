@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useAppSession } from "@/components/SessionProvider";
 import { createBrief } from "@/lib/api-client";
 import type { Brief } from "@/lib/types";
 
 export function BriefForm({ onCreated }: { onCreated?: (brief: Brief) => void }) {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session } = useAppSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

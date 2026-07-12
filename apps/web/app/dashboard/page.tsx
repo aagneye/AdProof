@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 import { BriefForm } from "@/components/BriefForm";
+import { useAppSession } from "@/components/SessionProvider";
 import { listBriefs } from "@/lib/api-client";
 import type { Brief } from "@/lib/types";
 
 export default function DashboardPage() {
-  const { data: session } = useSession();
+  const { data: session } = useAppSession();
   const token = session?.accessToken;
   const [briefs, setBriefs] = useState<Brief[]>([]);
   const [loading, setLoading] = useState(true);

@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 import { MockModeBadge } from "./MockModeBadge";
 import { UserMenu } from "./UserMenu";
+import { useAppSession } from "./SessionProvider";
 
 export function NavHeader() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useAppSession();
 
   return (
     <header style={{ borderBottom: "1px solid var(--border)" }}>

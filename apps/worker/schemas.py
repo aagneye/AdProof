@@ -8,9 +8,9 @@ from uuid import UUID
 from pydantic import BaseModel, Field, field_validator
 
 
-class GoogleAuthRequest(BaseModel):
+class SupabaseAuthRequest(BaseModel):
     email: str = Field(..., min_length=3)
-    google_id: str = Field(..., min_length=1)
+    provider_user_id: str = Field(..., min_length=1)
     name: str | None = None
     picture: str | None = None
 

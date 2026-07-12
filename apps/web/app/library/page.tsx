@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useAppSession } from "@/components/SessionProvider";
 import { getLibrary } from "@/lib/api-client";
 import type { LibraryItem } from "@/lib/types";
 
 export default function LibraryPage() {
-  const { data: session } = useSession();
+  const { data: session } = useAppSession();
   const token = session?.accessToken;
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [brand, setBrand] = useState("");
