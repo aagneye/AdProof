@@ -20,14 +20,15 @@ from api.runs import router as runs_router
 from api.webhooks import router as webhooks_router
 from config import get_settings
 from db.models import Base
-from db.migrate import ensure_user_auth_columns
-from db.session import engine
+from db.migrate import ensure_user_activities_table, ensure_user_auth_columns
+from db.session import engine, get_database_url
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     ensure_user_auth_columns()
+    ensure_user_activities_table()
     yield
 
 
@@ -79,6 +80,8 @@ def health():
     return {
         "status": "ok",
         "db": db_ok,
+        "db_dialect": engine.dialect.name,
+        "database_url_scheme": get_database_url().split("://", 1)[0] if get_database_url() else "none",
         "redis": redis_ok,
         "pipeline_mode": settings.pipeline_mode,
         "mock_mode": settings.is_mock_mode,
