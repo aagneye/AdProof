@@ -80,7 +80,10 @@ export function AppSessionProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>(() => (readStoredSession() ? "authenticated" : "loading"));
 
   const applySupabaseSession = useCallback(async (session: SupabaseSession | null) => {
+    console.log("[SessionProvider] applySupabaseSession called with session:", session?.user.email);
+    
     if (!session) {
+      console.log("[SessionProvider] No session, setting unauthenticated");
       setData(null);
       setStatus("unauthenticated");
       persistStoredSession(null);
@@ -89,12 +92,14 @@ export function AppSessionProvider({ children }: { children: ReactNode }) {
 
     setStatus("loading");
     try {
+      console.log("[SessionProvider] Converting Supabase session to app session");
       const nextSession = await toAppSession(session);
+      console.log("[SessionProvider] Converted successfully, setting authenticated");
       setData(nextSession);
       setStatus("authenticated");
       persistStoredSession(nextSession);
     } catch (error) {
-      console.error("Failed to sync Supabase session", error);
+      console.error("[SessionProvider] Failed to sync Supabase session:", error);
       setData(null);
       setStatus("unauthenticated");
       persistStoredSession(null);

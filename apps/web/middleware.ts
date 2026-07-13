@@ -3,16 +3,13 @@ import { NextResponse, type NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const token = request.cookies.get("adproof_token")?.value;
 
-  // Allow Supabase OAuth callbacks to pass through so SessionProvider
-  // can exchange the token and set the cookie before we check auth.
-  // Supabase appends #access_token or ?code= to the callback URL.
-  const { searchParams } = request.nextUrl;
-  const hasOAuthParams =
-    searchParams.has("code") ||
-    searchParams.has("access_token") ||
-    request.nextUrl.hash?.includes("access_token");
+  // /auth/callback handles Supabase OAuth redirect and doesn't need auth
+  // The SessionProvider will set the cookie after syncing with the worker
+  if (request.nextUrl.pathname === "/auth/callback") {
+    return NextResponse.next();
+  }
 
-  if (!token && !hasOAuthParams) {
+  if (!token) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("callbackUrl", request.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);

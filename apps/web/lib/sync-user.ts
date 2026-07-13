@@ -14,6 +14,7 @@ export async function syncSupabaseUser(input: {
   name?: string | null;
   picture?: string | null;
 }): Promise<SyncedUser> {
+  console.log("[syncSupabaseUser] Syncing user:", input.email);
   const res = await fetch(`${API_URL}/auth/supabase`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -26,7 +27,11 @@ export async function syncSupabaseUser(input: {
     cache: "no-store",
   });
   if (!res.ok) {
-    throw new Error(`Failed to sync user: ${res.status}`);
+    const errorText = await res.text();
+    console.error(`[syncSupabaseUser] Failed: ${res.status}`, errorText);
+    throw new Error(`Failed to sync user: ${res.status} ${errorText}`);
   }
-  return res.json();
+  const data = await res.json();
+  console.log("[syncSupabaseUser] Success, user_id:", data.user_id);
+  return data;
 }
